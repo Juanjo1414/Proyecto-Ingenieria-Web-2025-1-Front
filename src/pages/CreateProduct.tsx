@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import { toast } from 'react-hot-toast';
 
 const CreateProduct: React.FC = () => {
   const [name, setName] = useState('');
@@ -20,7 +21,8 @@ const CreateProduct: React.FC = () => {
       });
       navigate('/products');
     } catch (error) {
-      alert('Error al crear el producto.');
+      toast.error('Error al crear el producto.');
+      console.error("Error creating product:", error);
     }
   };
 

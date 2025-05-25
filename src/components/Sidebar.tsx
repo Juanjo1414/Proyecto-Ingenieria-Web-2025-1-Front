@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaTachometerAlt, FaBoxOpen, FaVials, FaUserTie, FaBars } from 'react-icons/fa';
+import { FaTachometerAlt, FaBoxOpen, FaVials, FaUserTie, FaBars, FaUsers, FaShoppingCart, FaUserCircle } from 'react-icons/fa'; // Importa FaUserCircle
 
 const Sidebar: React.FC = () => {
     const { user, logout } = useAuth();
@@ -9,23 +9,30 @@ const Sidebar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(true);
 
     const links = [
-        { to: '/admin/dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, roles: ['Admin'] },
-        { to: '/products', label: 'Productos', icon: <FaBoxOpen />, roles: ['Admin', 'Employee'] },
-        { to: '/tester/dashboard', label: 'Pruebas', icon: <FaVials />, roles: ['Tester'] },
-        { to: '/client/dashboard', label: 'Mi Cuenta', icon: <FaUserTie />, roles: ['Client'] },
+        { to: '/admin/dashboard', label: 'Dashboard Admin', icon: <FaTachometerAlt />, roles: ['admin'] },
+        { to: '/products', label: 'Productos', icon: <FaBoxOpen />, roles: ['admin', 'employee'] },
+        { to: '/product-tests', label: 'Pruebas de Productos', icon: <FaVials />, roles: ['admin', 'employee', 'tester'] },
+        { to: '/users-management', label: 'Gestión de Usuarios', icon: <FaUsers />, roles: ['admin'] },
+        { to: '/orders-management', label: 'Gestión de Órdenes', icon: <FaShoppingCart />, roles: ['admin'] },
+        { to: '/tester/dashboard', label: 'Dashboard Tester', icon: <FaTachometerAlt />, roles: ['tester'] },
+        { to: '/employee/dashboard', label: 'Dashboard Empleado', icon: <FaTachometerAlt />, roles: ['employee'] },
+        { to: '/client/dashboard', label: 'Mi Cuenta', icon: <FaUserTie />, roles: ['client'] },
+        { to: '/profile', label: 'Mi Perfil', icon: <FaUserCircle />, roles: ['admin', 'client', 'tester', 'employee'] },
     ];
 
     const handleLogout = () => {
         logout();
     };
 
-    const filteredLinks = links.filter(link => link.roles.includes(user?.role ?? ''));
+    const filteredLinks = links.filter(link =>
+        link.roles.some(role => role.toLowerCase() === (user?.role || '').toLowerCase())
+    );
 
     return (
         <div className="flex">
             <aside
                 className={`bg-pink-600 text-white h-screen p-5 transition-width duration-300 ${isOpen ? 'w-64' : 'w-16'
-                    } flex flex-col md:w-64`}  // Aquí aseguramos que en pantallas grandes esté siempre abierto
+                    } flex flex-col md:w-64`}
             >
                 <div className="flex justify-between items-center mb-8">
                     {isOpen && <h1 className="text-lg font-bold cursor-default">GlamGiant</h1>}
@@ -38,19 +45,20 @@ const Sidebar: React.FC = () => {
                     </button>
                 </div>
 
-
                 <nav className="flex flex-col space-y-3 flex-grow">
 
-                    <Link
-                        to="/create-product"
-                        className={`flex items-center px-3 py-2 rounded hover:bg-pink-700 transition ${location.pathname === '/create-product' ? 'bg-pink-800' : ''
-                            }`}
-                        title="Crear Producto"
-                    >
-                        <FaBoxOpen />
-                        {isOpen && <span className="ml-3">Crear Producto</span>}
-                    </Link>
-                    
+                    {user?.role === 'admin' && (
+                        <Link
+                            to="/create-product"
+                            className={`flex items-center px-3 py-2 rounded hover:bg-pink-700 transition ${location.pathname === '/create-product' ? 'bg-pink-800' : ''
+                                }`}
+                            title="Crear Producto"
+                        >
+                            <FaBoxOpen />
+                            {isOpen && <span className="ml-3">Crear Producto</span>}
+                        </Link>
+                    )}
+
                     {filteredLinks.map(({ to, label, icon }) => (
                         <Link
                             key={to}
@@ -62,12 +70,8 @@ const Sidebar: React.FC = () => {
                             <span className="text-lg">{icon}</span>
                             {isOpen && <span className="ml-3">{label}</span>}
                         </Link>
-
-                        
                     ))}
                 </nav>
-
-                
 
                 <div className="mt-auto pt-10">
                     {isOpen && (
@@ -75,8 +79,6 @@ const Sidebar: React.FC = () => {
                             Hola, <strong>{user?.name ?? user?.email}</strong>
                         </div>
                     )}
-
-                    
 
                     <button
                         onClick={handleLogout}

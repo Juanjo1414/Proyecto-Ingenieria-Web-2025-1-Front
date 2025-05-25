@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/Login';
 import ProtectedRoute from './ProtectedRoute';
@@ -9,6 +8,11 @@ import DashboardEmployee from '../pages/DashboardEmployee';
 import Products from '../pages/Products';
 import Unauthorized from '../pages/Unauthorized';
 import CreateProduct from '../pages/CreateProduct';
+import EditProduct from '../pages/EditProduct';
+import ProductTests from '../pages/ProductTests';
+import UsersManagement from '../pages/UsersManagement';
+import OrdersManagement from '../pages/OrdersManagement';
+import UserProfile from '../pages/UserProfile';
 
 const AppRoutes = () => (
   <Routes>
@@ -60,18 +64,61 @@ const AppRoutes = () => (
     />
 
     <Route
-  path="/create-product"
-  element={
-    <ProtectedRoute allowedRoles={['Admin']}>
-      <CreateProduct />
-    </ProtectedRoute>
-  }
-/>
+      path="/create-product"
+      element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CreateProduct />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/edit-product/:id"
+      element={
+        <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <EditProduct />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/product-tests"
+      element={
+        <ProtectedRoute allowedRoles={['admin', 'employee', 'tester']}>
+          <ProductTests />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/users-management"
+      element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <UsersManagement />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/orders-management"
+      element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <OrdersManagement />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/profile"
+      element={
+        <ProtectedRoute allowedRoles={['admin', 'client', 'tester', 'employee']}>
+          <UserProfile />
+        </ProtectedRoute>
+      }
+    />
 
     <Route path="/unauthorized" element={<Unauthorized />} />
   </Routes>
-
-  
 );
 
 export default AppRoutes;

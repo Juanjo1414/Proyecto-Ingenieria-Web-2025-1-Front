@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import  toast from 'react-hot-toast';
 
 const Login = () => {
   const { login } = useAuth();
@@ -15,6 +16,8 @@ const Login = () => {
     await login(email, password);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     console.log(user);
+
+    toast.success(`Bienvenido, ${user.name || user.email}!`);
     
     // Redirigir según el rol del usuario
     if (user.role === 'admin') {
@@ -29,7 +32,8 @@ const Login = () => {
       navigate('/');
     }
   } catch (error) {
-    alert('Error al iniciar sesión. Verifica tus credenciales.');
+    toast.error('Error al iniciar sesión. Verifica tus credenciales.');
+    console.error("Login error:", error);
   }
 };
 
