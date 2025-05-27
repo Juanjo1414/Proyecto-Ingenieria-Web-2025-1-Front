@@ -12,10 +12,11 @@ const EditProduct: React.FC = () => {
   const [category, setCategory] = useState('');
   const [stock, setStock] = useState(0);
   const [durability, setDurability] = useState(0);
+  const [warehouseLocation, setWarehouseLocation] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
         if (!id) {
@@ -28,6 +29,7 @@ const EditProduct: React.FC = () => {
         setCategory(productToEdit.category);
         setStock(productToEdit.stock);
         setDurability(productToEdit.durability_score);
+        setWarehouseLocation(productToEdit.warehouse_location);
         setLoading(false);
       } catch (err) {
         console.error('Error al cargar el producto para edición:', err);
@@ -52,12 +54,13 @@ const EditProduct: React.FC = () => {
         category,
         stock,
         durability_score: durability,
+        warehouse_location: warehouseLocation,
       });
       toast.success('Producto actualizado exitosamente!');
-      navigate('/products'); 
+      navigate(-1); // Regresa a la página anterior en el historial
     } catch (err) {
       console.error('Error al actualizar el producto:', err);
-      toast.success('Producto actualizado exitosamente!');
+      toast.error('Error al actualizar el producto.');
     }
   };
 
@@ -90,6 +93,7 @@ const EditProduct: React.FC = () => {
           onChange={(e) => setStock(Number(e.target.value))}
           placeholder="Stock"
           className="w-full px-4 py-2 border rounded"
+          min={0}
           required
         />
         <input
@@ -98,8 +102,16 @@ const EditProduct: React.FC = () => {
           onChange={(e) => setDurability(Number(e.target.value))}
           placeholder="Durabilidad (1-10)"
           className="w-full px-4 py-2 border rounded"
-          min="1"
-          max="10"
+          min={1}
+          max={10}
+          required
+        />
+        <input
+          type="text"
+          value={warehouseLocation}
+          onChange={(e) => setWarehouseLocation(e.target.value)}
+          placeholder="Ubicación en almacén"
+          className="w-full px-4 py-2 border rounded"
           required
         />
         <button

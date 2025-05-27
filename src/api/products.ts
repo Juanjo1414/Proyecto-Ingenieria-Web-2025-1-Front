@@ -20,7 +20,7 @@ export async function getProductById(id: string): Promise<Product> {
 }
 
 export async function updateProduct(id: string, productData: Partial<Product>): Promise<Product> {
-  const response = await apiClient.put(`/makeup-products/${id}`, productData);
+  const response = await apiClient.patch(`/makeup-products/${id}`, productData);
   return response.data;
 }
 
