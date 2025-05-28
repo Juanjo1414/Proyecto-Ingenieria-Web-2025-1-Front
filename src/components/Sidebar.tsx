@@ -18,6 +18,10 @@ const Sidebar: React.FC = () => {
         { to: '/employee/dashboard', label: 'Dashboard Empleado', icon: <FaTachometerAlt />, roles: ['employee'] },
         { to: '/client/dashboard', label: 'Mi Cuenta', icon: <FaUserTie />, roles: ['client'] },
         { to: '/profile', label: 'Mi Perfil', icon: <FaUserCircle />, roles: ['admin', 'client', 'tester', 'employee'] },
+        { to: '/client/store', label: 'Tienda', icon: <FaShoppingCart />, roles: ['client'] },
+        { to: '/client/cart', label: 'Carrito', icon: <FaShoppingCart />, roles: ['client'] },
+        { to: '/client/purchases', label: 'Mis Compras', icon: <FaShoppingCart />, roles: ['client'] },
+
     ];
 
     const handleLogout = () => {

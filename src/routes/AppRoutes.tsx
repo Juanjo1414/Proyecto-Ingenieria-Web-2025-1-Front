@@ -14,13 +14,17 @@ import ProductTests from '../pages/ProductTests';
 import UsersManagement from '../pages/UsersManagement';
 import OrdersManagement from '../pages/OrdersManagement';
 import UserProfile from '../pages/UserProfile';
+import TiendaCliente from '../pages/TiendaCliente';
+import CarritoCliente from '../pages/CarritoCliente';
+import HistorialCliente from '../pages/HistorialCliente';
+
 
 const AppRoutes = () => (
   <Routes>
     {/* Rutas públicas */}
     <Route path="/" element={<Login />} />
     <Route path="/login" element={<Login />} />
-    <Route path="/register" element={<Register />} /> 
+    <Route path="/register" element={<Register />} />
 
     {/* Rutas protegidas */}
     <Route
@@ -112,6 +116,35 @@ const AppRoutes = () => (
         </ProtectedRoute>
       }
     />
+
+    <Route
+      path="/client/store"
+      element={
+        <ProtectedRoute allowedRoles={['client']}>
+          <TiendaCliente />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/client/cart"
+      element={
+        <ProtectedRoute allowedRoles={['client']}>
+          <CarritoCliente />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+  path="/client/purchases"
+  element={
+    <ProtectedRoute allowedRoles={['client']}>
+      <HistorialCliente />
+    </ProtectedRoute>
+  }
+/>
+
+    {/* Ruta para el perfil del usuario */}
 
     <Route
       path="/profile"
