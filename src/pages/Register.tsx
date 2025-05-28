@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaUserPlus, FaEnvelope, FaUserCircle, FaLock } from 'react-icons/fa'; 
+import { FaEnvelope, FaUserCircle, FaLock } from 'react-icons/fa'; 
 
 const Register: React.FC = () => { 
   const navigate = useNavigate();

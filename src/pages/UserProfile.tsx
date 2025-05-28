@@ -106,7 +106,6 @@ const UserProfile: React.FC = () => {
       if (newPassword || updatedData.email) {
         await login(updatedData.email || currentEmail, newPassword || ''); 
       } else {
-          const updatedUserData = await getUserById(user.id);
       }
 
       setNewPassword('');

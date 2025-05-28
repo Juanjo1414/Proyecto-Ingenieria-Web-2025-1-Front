@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getProductById, updateProduct, type Product } from '../api/products';
+import { getProductById, updateProduct } from '../api/products';
 import { toast } from 'react-hot-toast';
 
 const categories = ['lipstick', 'foundation', 'eyeshadow', 'other'] as const;
