@@ -2,42 +2,43 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUserById, updateUser, type User, type UpdateUserDto } from '../api/users';
 import toast from 'react-hot-toast';
-import Sidebar from '../components/Sidebar'; 
+import Sidebar from '../components/Sidebar';
 
 const UserProfile: React.FC = () => {
-  const { user, login } = useAuth(); 
+  const { user, login } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados del formulario para la información del usuario
   const [currentName, setCurrentName] = useState('');
   const [currentEmail, setCurrentEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [allergicReactions, setAllergicReactions] = useState('');
   const [testSubjectStatus, setTestSubjectStatus] = useState(false);
-  const [initialUserData, setInitialUserData] = useState<User | null>(null); 
+  const [initialUserData, setInitialUserData] = useState<User | null>(null);
 
   useEffect(() => {
+
     const fetchUserData = async () => {
       if (!user?.id) {
         setError('Usuario no autenticado.');
         setLoading(false);
         return;
       }
+
       try {
         const userData = await getUserById(user.id);
-        setInitialUserData(userData); 
+        setInitialUserData(userData);
         setCurrentName(userData.name);
         setCurrentEmail(userData.email);
         setAllergicReactions(userData.allergic_reactions || '');
         setTestSubjectStatus(userData.test_subject_status || false);
-        setLoading(false);
       } catch (err) {
-        console.error('Error al cargar datos del perfil:', err);
-        setError('Error al cargar tu perfil.');
-        setLoading(false);
+        console.error('Error al cargar perfil:', err);
+        setError('Error al cargar el perfil del usuario.');
         toast.error('Error al cargar tu perfil.');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -48,7 +49,7 @@ const UserProfile: React.FC = () => {
     e.preventDefault();
 
     if (!user?.id) {
-      toast.error('No se pudo actualizar el perfil: usuario no autenticado.');
+      toast.error('No se pudo actualizar: usuario no autenticado.');
       return;
     }
 
@@ -60,26 +61,27 @@ const UserProfile: React.FC = () => {
     const updatedData: UpdateUserDto = {};
     let changesMade = false;
 
-    // Comparar con los datos iniciales para enviar solo lo que cambió
     if (initialUserData) {
-        if (currentName !== initialUserData.name) {
-            updatedData.name = currentName;
-            changesMade = true;
-        }
-        if (currentEmail !== initialUserData.email) {
-            updatedData.email = currentEmail;
-            changesMade = true;
-        }
-        if (allergicReactions !== (initialUserData.allergic_reactions || '')) {
-            updatedData.allergic_reactions = allergicReactions;
-            changesMade = true;
-        }
-        if (testSubjectStatus !== (initialUserData.test_subject_status || false)) {
-            updatedData.test_subject_status = testSubjectStatus;
-            changesMade = true;
-        }
-    }
+      if (currentName !== initialUserData.name) {
+        updatedData.name = currentName;
+        changesMade = true;
+      }
 
+      if (currentEmail !== initialUserData.email) {
+        updatedData.email = currentEmail;
+        changesMade = true;
+      }
+
+      if (allergicReactions !== (initialUserData.allergic_reactions || '')) {
+        updatedData.allergic_reactions = allergicReactions;
+        changesMade = true;
+      }
+
+      if (testSubjectStatus !== (initialUserData.test_subject_status || false)) {
+        updatedData.test_subject_status = testSubjectStatus;
+        changesMade = true;
+      }
+    }
 
     if (newPassword) {
       updatedData.password = newPassword;
@@ -87,8 +89,8 @@ const UserProfile: React.FC = () => {
     }
 
     if (!changesMade) {
-        toast('No hay cambios para guardar.', { icon: 'ℹ️' });
-        return;
+      toast('No hay cambios para guardar.', { icon: 'ℹ️' });
+      return;
     }
 
     try {
@@ -97,37 +99,38 @@ const UserProfile: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
 
-      //Actualizar el contexto de autenticación si el nombre o email cambiaron
-      if (updatedData.name || updatedData.email) {
-          if(updatedUser && (updatedUser.name !== user.name || updatedUser.email !== user.email)) {
-              login(currentEmail, newPassword || '');
-          }
+      // Actualizar contexto si cambió el email o nombre
+      if ((updatedData.email || updatedData.name) && newPassword) {
+        await login(updatedData.email ?? user.email, newPassword);
       }
-
     } catch (err) {
       console.error('Error al actualizar perfil:', err);
-      const errorMessage = (err as any).response?.data?.message || 'Error al actualizar el perfil.';
+      const errorMessage = (err as any)?.response?.data?.message || 'Error al actualizar el perfil.';
       toast.error(errorMessage);
     }
   };
 
-  if (loading) return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <p className="text-center text-gray-700">Cargando perfil...</p>
-      </main>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <main className="flex-1 p-8">
+          <p className="text-center text-gray-700">Cargando perfil...</p>
+        </main>
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <p className="text-center text-red-600">{error}</p>
-      </main>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <main className="flex-1 p-8">
+          <p className="text-center text-red-600">{error}</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -179,7 +182,7 @@ const UserProfile: React.FC = () => {
               />
             </label>
 
-            {(user?.role === 'tester' || user?.role === 'admin' || user?.role === 'employee') && ( 
+            {(user?.role === 'tester' || user?.role === 'admin' || user?.role === 'employee') && (
               <>
                 <label className="block flex items-center space-x-2">
                   <input
