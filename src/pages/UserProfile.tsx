@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUserById, updateUser, type User, type UpdateUserDto } from '../api/users';
 import toast from 'react-hot-toast';
-import Sidebar from '../components/Sidebar';
+import { FaUserCircle, FaSave } from 'react-icons/fa'; 
 
 const UserProfile: React.FC = () => {
   const { user, login } = useAuth();
@@ -18,10 +18,9 @@ const UserProfile: React.FC = () => {
   const [initialUserData, setInitialUserData] = useState<User | null>(null);
 
   useEffect(() => {
-
     const fetchUserData = async () => {
       if (!user?.id) {
-        setError('Usuario no autenticado.');
+        setError('Usuario no autenticado. Por favor, inicia sesión para ver tu perfil.');
         setLoading(false);
         return;
       }
@@ -35,7 +34,7 @@ const UserProfile: React.FC = () => {
         setTestSubjectStatus(userData.test_subject_status || false);
       } catch (err) {
         console.error('Error al cargar perfil:', err);
-        setError('Error al cargar el perfil del usuario.');
+        setError('Error al cargar el perfil del usuario. Por favor, inténtalo de nuevo.');
         toast.error('Error al cargar tu perfil.');
       } finally {
         setLoading(false);
@@ -50,6 +49,11 @@ const UserProfile: React.FC = () => {
 
     if (!user?.id) {
       toast.error('No se pudo actualizar: usuario no autenticado.');
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      toast.error('La nueva contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
@@ -72,12 +76,14 @@ const UserProfile: React.FC = () => {
         changesMade = true;
       }
 
-      if (allergicReactions !== (initialUserData.allergic_reactions || '')) {
+      if ((user?.role === 'tester' || user?.role === 'admin' || user?.role === 'employee') &&
+          allergicReactions !== (initialUserData.allergic_reactions || '')) {
         updatedData.allergic_reactions = allergicReactions;
         changesMade = true;
       }
 
-      if (testSubjectStatus !== (initialUserData.test_subject_status || false)) {
+      if ((user?.role === 'tester' || user?.role === 'admin' || user?.role === 'employee') &&
+          testSubjectStatus !== (initialUserData.test_subject_status || false)) {
         updatedData.test_subject_status = testSubjectStatus;
         changesMade = true;
       }
@@ -94,15 +100,24 @@ const UserProfile: React.FC = () => {
     }
 
     try {
-      const updatedUser = await updateUser(user.id, updatedData);
-      toast.success('Perfil actualizado exitosamente.');
+      await updateUser(user.id, updatedData);
+      toast.success('Perfil actualizado exitosamente. ¡Mantén tu glamour!');
+      
+      if (newPassword || updatedData.email) {
+        await login(updatedData.email || currentEmail, newPassword || ''); 
+      } else {
+          const updatedUserData = await getUserById(user.id);
+      }
+
       setNewPassword('');
       setConfirmPassword('');
+      const reFetchedUserData = await getUserById(user.id);
+      setInitialUserData(reFetchedUserData);
+      setCurrentName(reFetchedUserData.name);
+      setCurrentEmail(reFetchedUserData.email);
+      setAllergicReactions(reFetchedUserData.allergic_reactions || '');
+      setTestSubjectStatus(reFetchedUserData.test_subject_status || false);
 
-      // Actualizar contexto si cambió el email o nombre
-      if ((updatedData.email || updatedData.name) && newPassword) {
-        await login(updatedData.email ?? user.email, newPassword);
-      }
     } catch (err) {
       console.error('Error al actualizar perfil:', err);
       const errorMessage = (err as any)?.response?.data?.message || 'Error al actualizar el perfil.';
@@ -112,109 +127,106 @@ const UserProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
-        <main className="flex-1 p-8">
-          <p className="text-center text-gray-700">Cargando perfil...</p>
-        </main>
-      </div>
+      <p className="flex-1 p-8 text-center text-pink-700">Cargando tu perfil...</p>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
-        <main className="flex-1 p-8">
-          <p className="text-center text-red-600">{error}</p>
-        </main>
-      </div>
+      <p className="flex-1 p-8 text-center text-red-600">{error}</p>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <section className="bg-white p-6 rounded shadow-md">
-          <h2 className="text-2xl font-bold mb-6">Mi Perfil</h2>
-          <p className="mb-4">Gestiona tu información personal.</p>
+    <div className="flex-1 p-8 bg-gray-100">
+      <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-pink-100">
+        <div className="flex items-center justify-center mb-6">
+          <FaUserCircle className="text-pink-600 text-5xl mr-4" />
+          <h2 className="text-3xl font-bold text-pink-700 font-serif">Mi Perfil GlamGiant</h2>
+        </div>
+        <p className="mb-8 text-center text-gray-600 text-lg font-serif">Aquí puedes gestionar tu información personal y preferencias.</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <label className="block">
-              <span className="text-gray-700">Nombre</span>
-              <input
-                type="text"
-                value={currentName}
-                onChange={(e) => setCurrentName(e.target.value)}
-                className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                required
-              />
-            </label>
-            <label className="block">
-              <span className="text-gray-700">Correo Electrónico</span>
-              <input
-                type="email"
-                value={currentEmail}
-                onChange={(e) => setCurrentEmail(e.target.value)}
-                className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                required
-              />
-            </label>
-            <label className="block">
-              <span className="text-gray-700">Nueva Contraseña (dejar en blanco para no cambiar)</span>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="********"
-                className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-              />
-            </label>
-            <label className="block">
-              <span className="text-gray-700">Confirmar Nueva Contraseña</span>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="********"
-                className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-              />
-            </label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Nombre */}
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Nombre Completo</span>
+            <input
+              type="text"
+              value={currentName}
+              onChange={(e) => setCurrentName(e.target.value)}
+              className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              required
+            />
+          </label>
+          {/* Correo Electrónico */}
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Correo Electrónico</span>
+            <input
+              type="email"
+              value={currentEmail}
+              onChange={(e) => setCurrentEmail(e.target.value)}
+              className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+              required
+            />
+          </label>
+          {/* Nueva Contraseña */}
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Nueva Contraseña (dejar en blanco para no cambiar)</span>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="********"
+              className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+            />
+          </label>
+          {/* Confirmar Nueva Contraseña */}
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Confirmar Nueva Contraseña</span>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="********"
+              className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+            />
+          </label>
 
-            {(user?.role === 'tester' || user?.role === 'admin' || user?.role === 'employee') && (
-              <>
-                <label className="block flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={testSubjectStatus}
-                    onChange={(e) => setTestSubjectStatus(e.target.checked)}
-                    className="form-checkbox h-5 w-5 text-pink-600"
-                  />
-                  <span className="text-gray-700">¿Sujeto de prueba?</span>
-                </label>
-                <label className="block">
-                  <span className="text-gray-700">Reacciones Alérgicas</span>
-                  <textarea
-                    value={allergicReactions}
-                    onChange={(e) => setAllergicReactions(e.target.value)}
-                    placeholder="Cualquier reacción alérgica documentada"
-                    className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                    rows={2}
-                  />
-                </label>
-              </>
-            )}
+          {(user?.role === 'tester' || user?.role === 'admin' || user?.role === 'employee') && (
+            <>
+              {/* Sujeto de Prueba */}
+              <label className=" flex items-center space-x-3 mt-4">
+                <input
+                  type="checkbox"
+                  checked={testSubjectStatus}
+                  onChange={(e) => setTestSubjectStatus(e.target.checked)}
+                  className="form-checkbox h-6 w-6 text-pink-600 rounded-md focus:ring-pink-400 transition"
+                />
+                <span className="text-gray-700 font-semibold text-lg">¿Es sujeto de prueba? </span>
+              </label>
+              {/* Reacciones Alérgicas */}
+              <label className="block">
+                <span className="text-gray-700 font-semibold">Reacciones Alérgicas</span>
+                <textarea
+                  value={allergicReactions}
+                  onChange={(e) => setAllergicReactions(e.target.value)}
+                  placeholder="Cualquier reacción alérgica documentada (ej: enrojecimiento, picazón)"
+                  className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-400 focus:border-transparent transition"
+                  rows={3}
+                />
+              </label>
+            </>
+          )}
 
-            <button
-              type="submit"
-              className="bg-pink-600 text-white py-2 px-4 rounded w-full hover:bg-pink-700 transition"
-            >
-              Guardar Cambios
-            </button>
-          </form>
-        </section>
-      </main>
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-pink-500 to-pink-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-pink-600 hover:to-pink-800 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2"
+          >
+            <FaSave className="text-xl" />
+            <span>Guardar Cambios</span>
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

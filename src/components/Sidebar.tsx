@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaTachometerAlt, FaBoxOpen, FaVials, FaUserTie, FaBars, FaUsers, FaShoppingCart, FaUserCircle } from 'react-icons/fa'; // Importa FaUserCircle
+import { FaTachometerAlt, FaBoxOpen, FaVials, FaUserTie, FaBars, FaUsers, FaShoppingCart, FaUserCircle, FaSignOutAlt, FaPlus, FaTimes } from 'react-icons/fa'; // Iconos adicionales, agregué FaTimes
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isExpanded: boolean; 
+    toggleExpansion: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleExpansion }) => {
     const { user, logout } = useAuth();
     const location = useLocation();
-    const [isOpen, setIsOpen] = useState(true);
 
     const links = [
         { to: '/admin/dashboard', label: 'Dashboard Admin', icon: <FaTachometerAlt />, roles: ['admin'] },
@@ -29,33 +33,47 @@ const Sidebar: React.FC = () => {
     );
 
     return (
-        <div className="flex">
+        <>
+            {isExpanded && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+                    onClick={toggleExpansion} 
+                ></div>
+            )}
+
             <aside
-                className={`bg-pink-600 text-white h-screen p-5 transition-width duration-300 ${isOpen ? 'w-64' : 'w-16'
-                    } flex flex-col md:w-64`}
+                className={`
+                    fixed left-0 top-0 h-full bg-pink-600 text-white p-4 flex flex-col z-30
+                    transition-all duration-300 ease-in-out shadow-lg
+
+                    ${isExpanded ? 'w-64' : 'w-20'} /* Ancho fijo para expandido/contraído */
+
+                    /* Comportamiento en pantallas pequeñas (móviles) */
+                    ${isExpanded ? 'translate-x-0' : '-translate-x-full'} /* Se desliza completamente */
+                    md:translate-x-0 /* Siempre visible en desktop */
+                `}
             >
-                <div className="flex justify-between items-center mb-8">
-                    {isOpen && <h1 className="text-lg font-bold cursor-default">GlamGiant</h1>}
+                <div className="flex items-center mb-8 px-2">
+                    {isExpanded && <h1 className="text-xl font-bold cursor-default flex-grow">GlamGiant</h1>}
                     <button
-                        onClick={() => setIsOpen(!isOpen)}
-                        className="text-white focus:outline-none"
-                        aria-label="Toggle sidebar"
+                        onClick={toggleExpansion} 
+                        className="text-white text-xl focus:outline-none md:hidden ml-auto p-2 rounded-md hover:bg-pink-600" 
+                        aria-label="Cerrar sidebar"
                     >
-                        <FaBars />
+                        {isExpanded ? <FaTimes /> : <FaBars />} 
                     </button>
                 </div>
 
                 <nav className="flex flex-col space-y-3 flex-grow">
-
                     {user?.role === 'admin' && (
                         <Link
                             to="/create-product"
-                            className={`flex items-center px-3 py-2 rounded hover:bg-pink-700 transition ${location.pathname === '/create-product' ? 'bg-pink-800' : ''
+                            className={`flex items-center px-3 py-2 rounded hover:bg-pink-600 transition-colors duration-200 ${location.pathname === '/create-product' ? 'bg-pink-800' : ''
                                 }`}
                             title="Crear Producto"
                         >
-                            <FaBoxOpen />
-                            {isOpen && <span className="ml-3">Crear Producto</span>}
+                            <FaPlus className="text-lg" />
+                            {isExpanded && <span className="ml-3">Crear Producto</span>}
                         </Link>
                     )}
 
@@ -63,33 +81,33 @@ const Sidebar: React.FC = () => {
                         <Link
                             key={to}
                             to={to}
-                            className={`flex items-center px-3 py-2 rounded hover:bg-pink-700 transition ${location.pathname === to ? 'bg-pink-800' : ''
+                            className={`flex items-center px-3 py-2 rounded hover:bg-pink-600 transition-colors duration-200 ${location.pathname === to ? 'bg-pink-800' : ''
                                 }`}
-                            title={isOpen ? label : undefined}
+                            title={label}
                         >
                             <span className="text-lg">{icon}</span>
-                            {isOpen && <span className="ml-3">{label}</span>}
+                            {isExpanded && <span className="ml-3">{label}</span>}
                         </Link>
                     ))}
                 </nav>
 
-                <div className="mt-auto pt-10">
-                    {isOpen && (
-                        <div className="mb-4">
-                            Hola, <strong>{user?.name ?? user?.email}</strong>
+                <div className="mt-auto pt-4 border-t border-pink-500/50 px-2">
+                    {isExpanded && (
+                        <div className="mb-4 text-sm text-pink-100">
+                            Hola, <strong className="text-white">{user?.name ?? user?.email}</strong>
                         </div>
                     )}
 
                     <button
                         onClick={handleLogout}
-                        className="bg-pink-800 w-full py-2 rounded hover:bg-pink-700 transition"
+                        className="bg-pink-800 w-full py-2 rounded hover:bg-pink-700 transition-colors duration-200 flex items-center justify-center space-x-2"
                     >
-                        Cerrar sesión
+                        <FaSignOutAlt />
+                        {isExpanded && <span>Cerrar sesión</span>}
                     </button>
-
                 </div>
             </aside>
-        </div>
+        </>
     );
 };
 

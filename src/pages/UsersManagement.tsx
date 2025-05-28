@@ -11,7 +11,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { FaEdit, FaTrash, FaPlusSquare } from 'react-icons/fa';
-import Sidebar from '../components/Sidebar';
 
 const UsersManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -62,8 +61,7 @@ const UsersManagement: React.FC = () => {
     setCurrentUserId(userToEdit.id);
     setName(userToEdit.name);
     setEmail(userToEdit.email);
-    // No precargar la contraseña por seguridad
-    setPassword('');
+    setPassword(''); 
     setRole(userToEdit.role);
     setTestSubjectStatus(userToEdit.test_subject_status || false);
     setAllergicReactions(userToEdit.allergic_reactions || '');
@@ -72,7 +70,7 @@ const UsersManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción es irreversible.')) {
       try {
         await deleteUser(id);
         toast.success('Usuario eliminado exitosamente.');
@@ -86,6 +84,24 @@ const UsersManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validaciones front-end
+    if (!name.trim()) {
+      toast.error('El nombre no puede estar vacío.');
+      return;
+    }
+    if (!email.trim() || !email.includes('@') || !email.includes('.')) {
+      toast.error('Por favor, ingresa un correo electrónico válido.');
+      return;
+    }
+    if (!isEditing && !password.trim()) {
+      toast.error('La contraseña es requerida para nuevos usuarios.');
+      return;
+    }
+    if (password.trim() && password.length < 6) { 
+      toast.error('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
 
     const userData: CreateUserDto | UpdateUserDto = {
       name,
@@ -102,187 +118,203 @@ const UsersManagement: React.FC = () => {
     try {
       if (isEditing && currentUserId) {
         await updateUser(currentUserId, userData as UpdateUserDto);
-        toast.success('Usuario actualizado exitosamente.');
+        toast.success('Usuario actualizado exitosamente. ¡Manteniendo GlamGiant en forma!');
       } else {
-        await createUser(userData as CreateUserDto); 
-        toast.success('Usuario creado exitosamente.');
+        await createUser(userData as CreateUserDto);
+        toast.success('Usuario creado exitosamente. ¡Bienvenido a GlamGiant!');
       }
       resetForm();
       fetchUsers();
     } catch (err) {
       console.error('Error al guardar usuario:', err);
-      toast.error('Error al guardar el usuario.');
+      const errorMessage = (err as any)?.response?.data?.message || 'Error al guardar el usuario.';
+      toast.error(errorMessage);
     }
   };
 
-  // Solo el Admin puede acceder a esta página
   if (currentUser?.role !== 'admin') {
     return (
-      <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
-        <main className="flex-1 p-8">
-          <section className="bg-white p-6 rounded shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Acceso Denegado</h2>
-            <p>No tienes permisos para ver la gestión de usuarios.</p>
-          </section>
-        </main>
+      <div className="flex-1 p-8 bg-gray-100">
+        <section className="bg-white p-8 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-4 text-pink-700 font-serif">Acceso Denegado</h2>
+          <p className="text-gray-700">No tienes permisos para ver la gestión de usuarios. Esta sección es exclusiva para administradores.</p>
+        </section>
       </div>
     );
   }
 
-  if (loading) return <p className="p-8">Cargando usuarios...</p>;
-  if (error) return <p className="p-8 text-red-600">{error}</p>;
+  if (loading) return <p className="flex-1 p-8 text-center text-pink-700">Cargando usuarios...</p>;
+  if (error) return <p className="flex-1 p-8 text-center text-red-600">{error}</p>;
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <h2 className="text-2xl font-bold mb-6">Gestión de Usuarios</h2>
+    <div className="flex-1 p-8 bg-gray-100">
+      <h2 className="text-3xl font-bold mb-8 text-center text-pink-700 font-serif">Gestión de Usuarios</h2>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700 transition flex items-center mb-6"
-        >
-          <FaPlusSquare className="mr-2" /> {showForm ? 'Ocultar Formulario' : 'Nuevo Usuario'}
-        </button>
+      <button
+        onClick={() => { setShowForm(!showForm); resetForm(); }}
+        className="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:from-pink-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 mb-8 mx-auto"
+      >
+        <FaPlusSquare className="text-xl" />
+        <span className="text-lg">{showForm ? 'Ocultar Formulario de Usuario' : 'Crear Nuevo Usuario'}</span>
+      </button>
 
-        {showForm && (
-          <div className="bg-white p-6 rounded shadow-md mb-6">
-            <h3 className="text-xl font-semibold mb-4">{isEditing ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <label className="block">
-                <span className="text-gray-700">Nombre</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nombre completo"
-                  className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="text-gray-700">Correo Electrónico</span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="correo@ejemplo.com"
-                  className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className="text-gray-700">Contraseña (dejar en blanco para no cambiar)</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={isEditing ? "********" : "********"}
-                  className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                  required={!isEditing} 
-                />
-              </label>
-              <label className="block">
-                <span className="text-gray-700">Rol</span>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as 'admin' | 'client' | 'tester' | 'employee')}
-                  className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                >
-                  <option value="client">Cliente</option>
-                  <option value="employee">Empleado</option>
-                  <option value="tester">Tester</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </label>
-              <label className="block flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={testSubjectStatus}
-                  onChange={(e) => setTestSubjectStatus(e.target.checked)}
-                  className="form-checkbox h-5 w-5 text-pink-600"
-                />
-                <span className="text-gray-700">¿Sujeto de prueba?</span>
-              </label>
-              <label className="block">
-                <span className="text-gray-700">Reacciones Alérgicas</span>
-                <textarea
-                  value={allergicReactions}
-                  onChange={(e) => setAllergicReactions(e.target.value)}
-                  placeholder="Cualquier reacción alérgica documentada"
-                  className="mt-1 block w-full border border-pink-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-pink-200"
-                  rows={2}
-                />
-              </label>
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition flex-grow"
-                >
-                  {isEditing ? 'Guardar Cambios' : 'Crear Usuario'}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
+      {showForm && (
+        <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-pink-100 mb-8">
+          <h3 className="text-2xl font-bold text-center text-pink-600 mb-6">{isEditing ? 'Editar Datos de Usuario' : 'Registrar Nuevo Usuario'}</h3>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <label className="block">
+              <span className="text-gray-700 font-semibold">Nombre Completo</span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nombre completo del usuario"
+                className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className="text-gray-700 font-semibold">Correo Electrónico</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className="text-gray-700 font-semibold">Contraseña {isEditing ? '(dejar en blanco para no cambiar)' : ''}</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={isEditing ? "********" : "********"}
+                className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+                required={!isEditing}
+              />
+            </label>
+            <label className="block">
+              <span className="text-gray-700 font-semibold">Rol del Usuario</span>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value as 'admin' | 'client' | 'tester' | 'employee')}
+                className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition bg-white"
+              >
+                <option value="client">Cliente</option>
+                <option value="employee">Empleado</option>
+                <option value="tester">Tester</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <label className=" flex items-center space-x-3 mt-4">
+              <input
+                type="checkbox"
+                checked={testSubjectStatus}
+                onChange={(e) => setTestSubjectStatus(e.target.checked)}
+                className="form-checkbox h-6 w-6 text-pink-600 rounded-md focus:ring-pink-400 transition"
+              />
+              <span className="text-gray-700 font-semibold text-lg">¿Es sujeto de prueba?</span>
+            </label>
+            <label className="block">
+              <span className="text-gray-700 font-semibold">Reacciones Alérgicas (si aplica)</span>
+              <textarea
+                value={allergicReactions}
+                onChange={(e) => setAllergicReactions(e.target.value)}
+                placeholder="Cualquier reacción alérgica documentada (ej: enrojecimiento, picazón)"
+                className="mt-2 block w-full px-4 py-3 border border-pink-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition"
+                rows={3}
+              />
+            </label>
+            <div className="flex space-x-4 mt-6">
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-green-400 to-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-green-500 hover:to-green-700 transition-all duration-300 transform hover:scale-105"
+              >
+                {isEditing ? 'Guardar Cambios' : 'Crear Usuario'}
+              </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                className="bg-gray-400 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-gray-500 transition-all duration-300 transform hover:scale-105"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Listado de Usuarios */}
+      <div className="bg-white p-8 rounded-2xl shadow-xl border border-pink-100">
+        <h3 className="text-2xl font-bold text-center text-pink-600 mb-6">Listado de Usuarios GlamGiant</h3>
+        {users.length === 0 ? (
+          <p className="text-center text-gray-600 text-lg">No hay usuarios registrados en el sistema. ¡Añade el primero!</p>
+        ) : (
+          <div className="overflow-x-auto w-full">
+            <table className="min-w-full bg-white border-collapse">
+              <thead>
+                <tr className="bg-pink-100 text-pink-800 text-left uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 border-b border-pink-200">Nombre</th>
+                  <th className="py-3 px-6 border-b border-pink-200">Email</th>
+                  <th className="py-3 px-6 border-b border-pink-200">Rol</th>
+                  <th className="py-3 px-6 border-b border-pink-200 text-center">Sujeto Prueba</th>
+                  <th className="py-3 px-6 border-b border-pink-200 text-left">Reacciones Alérgicas</th> 
+                  <th className="py-3 px-6 border-b border-pink-200 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-700 text-sm font-light">
+                {users.map((userItem) => (
+                  <tr key={userItem.id} className="border-b border-gray-200 hover:bg-pink-50">
+                    <td className="py-3 px-6 text-left whitespace-nowrap font-medium">{userItem.name}</td>
+                    <td className="py-3 px-6 text-left">{userItem.email}</td>
+                    <td className="py-3 px-6 text-left capitalize">
+                      <span className={`py-1 px-3 rounded-full text-xs font-semibold
+                        ${userItem.role === 'admin' ? 'bg-purple-200 text-purple-800' : ''}
+                        ${userItem.role === 'client' ? 'bg-blue-200 text-blue-800' : ''}
+                        ${userItem.role === 'tester' ? 'bg-green-200 text-green-800' : ''}
+                        ${userItem.role === 'employee' ? 'bg-yellow-200 text-yellow-800' : ''}
+                      `}>
+                        {userItem.role}
+                      </span>
+                    </td>
+                    <td className="py-3 px-6 text-center">
+                      {userItem.test_subject_status ? (
+                        <span className="bg-emerald-200 text-emerald-800 py-1 px-3 rounded-full text-xs font-semibold">Sí</span>
+                      ) : (
+                        <span className="bg-rose-200 text-rose-800 py-1 px-3 rounded-full text-xs font-semibold">No</span>
+                      )}
+                    </td>
+
+                    <td className="py-3 px-6 text-left break-words max-w-xs md:max-w-md lg:max-w-lg"> 
+                      {userItem.allergic_reactions || 'Ninguna'}
+                    </td>
+                    <td className="py-3 px-6 text-center">
+                      <div className="flex item-center justify-center space-x-3">
+                        <button
+                          onClick={() => handleEdit(userItem)}
+                          className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition-colors duration-200 transform hover:scale-110"
+                          title="Editar Usuario"
+                        >
+                          <FaEdit className="text-md" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(userItem.id)}
+                          className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition-colors duration-200 transform hover:scale-110"
+                          title="Eliminar Usuario"
+                        >
+                          <FaTrash className="text-md" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-
-        <div className="bg-white p-6 rounded shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Listado de Usuarios</h3>
-          {users.length === 0 ? (
-            <p>No hay usuarios registrados.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr>
-                    <th className="py-2 px-4 border-b text-left">Nombre</th>
-                    <th className="py-2 px-4 border-b text-left">Email</th>
-                    <th className="py-2 px-4 border-b text-left">Rol</th>
-                    <th className="py-2 px-4 border-b text-left">Sujeto Prueba</th>
-                    <th className="py-2 px-4 border-b text-left">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((userItem) => ( 
-                    <tr key={userItem.id} className="hover:bg-gray-50">
-                      <td className="py-2 px-4 border-b">{userItem.name}</td>
-                      <td className="py-2 px-4 border-b">{userItem.email}</td>
-                      <td className="py-2 px-4 border-b capitalize">{userItem.role}</td> 
-                      <td className="py-2 px-4 border-b">{userItem.test_subject_status ? 'Sí' : 'No'}</td>
-                      <td className="py-2 px-4 border-b">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(userItem)}
-                            className="text-blue-600 hover:text-blue-800"
-                            title="Editar"
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(userItem.id)}
-                            className="text-red-600 hover:text-red-800"
-                            title="Eliminar"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
+      </div>
     </div>
   );
 };
