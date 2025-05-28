@@ -11,7 +11,7 @@ import {
 import { getProducts, type Product } from '../api/products';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FaEdit, FaTrash, FaPlusSquare } from 'react-icons/fa'; 
+import { FaEdit, FaTrash, FaPlusSquare } from 'react-icons/fa';
 
 const ProductTests: React.FC = () => {
   const { user } = useAuth();
@@ -86,8 +86,8 @@ const ProductTests: React.FC = () => {
     e.preventDefault();
 
     if (!user?.id) {
-        toast.error('No se pudo obtener el ID del tester. Por favor, inicia sesión de nuevo.');
-        return;
+      toast.error('No se pudo obtener el ID del tester. Por favor, inicia sesión de nuevo.');
+      return;
     }
     if (!productId) {
       toast.error('Por favor, selecciona un producto.');
@@ -144,11 +144,17 @@ const ProductTests: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 p-8 bg-gray-100"> 
+    <div className="flex-1 p-8 bg-gray-100">
       <h2 className="text-3xl font-bold mb-8 text-center text-pink-700 font-serif">Gestión de Pruebas de Productos</h2>
 
       <button
-        onClick={() => { setShowForm(!showForm); resetForm(); }} 
+        onClick={() => {
+          if (showForm) {
+            resetForm(); // Oculta y limpia
+          } else {
+            setShowForm(true); // Solo abre, no resetea
+          }
+        }}
         className="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:from-pink-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2 mb-8 mx-auto" // Centrar botón
       >
         <FaPlusSquare className="text-xl" />
@@ -263,7 +269,7 @@ const ProductTests: React.FC = () => {
                     </td>
                     <td className="py-3 px-6 text-left">{test.reaction}</td>
                     <td className="py-3 px-6 text-center">
-                        <span className="font-bold text-pink-600">{test.rating}</span>/10
+                      <span className="font-bold text-pink-600">{test.rating}</span>/10
                     </td>
                     <td className="py-3 px-6 text-center">
                       {test.survival_status ? (
