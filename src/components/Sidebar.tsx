@@ -58,15 +58,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, toggleExpansion }) => {
                 `}
             >
                 <div className="flex items-center mb-8 px-2">
-                    {isExpanded && <h1 className="text-xl font-bold cursor-default flex-grow">GlamGiant</h1>}
+                    {isExpanded && (
+                        <img 
+                            src="/GGlogoText.png" 
+                            alt="GlamGiant Logo"
+                            className="h-15 w-auto rounded-lg cursor-default mr-2"
+                        />
+                    )}
                     <button
-                        onClick={toggleExpansion} 
-                        className="text-white text-xl focus:outline-none md:hidden ml-auto p-2 rounded-md hover:bg-pink-600" 
+                        onClick={toggleExpansion}
+                        className="text-white text-xl focus:outline-none md:hidden ml-auto p-2 rounded-md hover:bg-pink-600"
                         aria-label="Cerrar sidebar"
                     >
-                        {isExpanded ? <FaTimes /> : <FaBars />} 
+                        {isExpanded ? <FaTimes /> : <FaBars />}
                     </button>
                 </div>
+
+
 
                 <nav className="flex flex-col space-y-3 flex-grow">
                     {user?.role === 'admin' && (

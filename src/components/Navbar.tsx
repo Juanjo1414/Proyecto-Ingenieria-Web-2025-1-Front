@@ -1,11 +1,10 @@
-// src/components/Navbar.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
 
 interface NavbarProps {
   toggleSidebar: () => void;
-  isSidebarExpanded: boolean; // ¡Nuevo!
+  isSidebarExpanded: boolean;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, isSidebarExpanded }) => {
@@ -21,7 +20,17 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, isSidebarExpanded }) => 
       </button>
 
       <div className="font-bold text-2xl tracking-wider cursor-pointer">
-        <Link to="/admin/dashboard" className="hover:text-pink-100 transition-colors duration-300">GlamGiant</Link>
+        <Link 
+          to="/admin/dashboard" 
+          className="hover:text-pink-100 transition-colors duration-300 flex items-center space-x-2"
+        >
+          <img 
+            src="/GGlogo2.png" 
+            alt="GlammmGiant Logo" 
+            className="h-8 w-auto" 
+          />
+          <span>GlammmGiant</span>
+        </Link>
       </div>
       <div className="flex items-center space-x-4">
         {/* Puedes agregar otros elementos aquí si los necesitas */}
