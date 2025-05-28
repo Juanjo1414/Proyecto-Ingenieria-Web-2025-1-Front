@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/Login';
+import Register from '../pages/Register'; // Importamos el Register
 import ProtectedRoute from './ProtectedRoute';
 import DashboardAdmin from '../pages/DashboardAdmin';
 import DashboardTester from '../pages/DashboardTester';
@@ -16,8 +17,12 @@ import UserProfile from '../pages/UserProfile';
 
 const AppRoutes = () => (
   <Routes>
+    {/* Rutas públicas */}
     <Route path="/" element={<Login />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} /> 
 
+    {/* Rutas protegidas */}
     <Route
       path="/admin/dashboard"
       element={
@@ -117,6 +122,7 @@ const AppRoutes = () => (
       }
     />
 
+    {/* Ruta para acceso no autorizado */}
     <Route path="/unauthorized" element={<Unauthorized />} />
   </Routes>
 );

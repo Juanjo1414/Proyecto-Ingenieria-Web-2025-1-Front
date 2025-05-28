@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import  toast from 'react-hot-toast';
+import { useNavigate, Link } from 'react-router-dom';  // Importa Link
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const { login } = useAuth();
@@ -11,32 +11,28 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    await login(email, password);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    console.log(user);
+    e.preventDefault();
+    try {
+      await login(email, password);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      toast.success(`Bienvenido, ${user.name || user.email}!`);
 
-    toast.success(`Bienvenido, ${user.name || user.email}!`);
-    
-    // Redirigir según el rol del usuario
-    if (user.role === 'admin') {
-      navigate('/admin/dashboard');
-    } else if (user.role === 'tester') {
-      navigate('/tester/dashboard');
-    } else if (user.role === 'client') {
-      navigate('/client/dashboard');
-    } else if (user.role === 'employee') {
-      navigate('/employee/dashboard');
-    } else {
-      navigate('/');
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'tester') {
+        navigate('/tester/dashboard');
+      } else if (user.role === 'client') {
+        navigate('/client/dashboard');
+      } else if (user.role === 'employee') {
+        navigate('/employee/dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error('Error al iniciar sesión. Verifica tus credenciales.');
+      console.error('Login error:', error);
     }
-  } catch (error) {
-    toast.error('Error al iniciar sesión. Verifica tus credenciales.');
-    console.error("Login error:", error);
-  }
-};
-
+  };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-20 p-8 bg-white rounded shadow">
@@ -69,6 +65,13 @@ const Login = () => {
       >
         Iniciar sesión
       </button>
+
+      <p className="text-center mt-6 text-sm text-gray-600">
+        ¿No tienes cuenta?{' '}
+        <Link to="/register" className="text-pink-600 hover:underline">
+          Regístrate aquí
+        </Link>
+      </p>
     </form>
   );
 };

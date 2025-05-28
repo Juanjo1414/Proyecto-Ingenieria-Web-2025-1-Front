@@ -79,7 +79,9 @@ const OrdersManagement: React.FC = () => {
                           ? order.products.map(p => (typeof p === 'object' && p.name ? p.name : p)).join(', ')
                           : 'N/A'}
                       </td>
-                      <td className="py-2 px-4 border-b">${order.total_amount.toFixed(2)}</td>
+                      <td className="py-2 px-4 border-b">
+                        ${Number(order.total_amount).toFixed(2)}
+                      </td>
                       <td className="py-2 px-4 border-b">{order.payment_status}</td>
                     </tr>
                   ))}

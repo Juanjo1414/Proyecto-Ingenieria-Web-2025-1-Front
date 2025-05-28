@@ -11,7 +11,7 @@ const Sidebar: React.FC = () => {
     const links = [
         { to: '/admin/dashboard', label: 'Dashboard Admin', icon: <FaTachometerAlt />, roles: ['admin'] },
         { to: '/products', label: 'Productos', icon: <FaBoxOpen />, roles: ['admin', 'employee'] },
-        { to: '/product-tests', label: 'Pruebas de Productos', icon: <FaVials />, roles: ['admin', 'employee', 'tester'] },
+        { to: '/product-tests', label: 'Pruebas de Productos', icon: <FaVials />, roles: ['admin', 'tester'] },
         { to: '/users-management', label: 'Gestión de Usuarios', icon: <FaUsers />, roles: ['admin'] },
         { to: '/orders-management', label: 'Gestión de Órdenes', icon: <FaShoppingCart />, roles: ['admin'] },
         { to: '/tester/dashboard', label: 'Dashboard Tester', icon: <FaTachometerAlt />, roles: ['tester'] },
